@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI 游戏测试脑图专业版</title>
+    <title>AI 游戏测试脑图</title>
     <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -14,27 +14,24 @@
     <script type="module">
         import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
         import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
-
-        MindMap.usePlugin(Menu);
+        
+        MindMap.usePlugin(Menu); // 激活右键菜单
 
         function getSafeData() {
             const hash = window.location.hash;
             if (hash && hash.includes('data=')) {
                 try {
                     const b64 = hash.split('data=')[1];
-                    // 处理中文 Base64 解码
+                    // 处理中文 Base64 的终极解码
                     const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
                         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                     ).join(''));
-                    const parsedData = JSON.parse(jsonStr);
-                    // 额外检查：确保根节点有 children 数组
-                    if (!parsedData.children) parsedData.children = [];
-                    return parsedData;
+                    return JSON.parse(jsonStr);
                 } catch (e) {
-                    return { data: { text: "数据解析失败，请检查 Dify 代码输出格式" } };
+                    return { data: { text: "解码失败，请回 Dify 重新生成" } };
                 }
             }
-            return { data: { text: "等待 Dify 传输用例数据..." } };
+            return { data: { text: "等待数据..." } };
         }
 
         const mindMap = new MindMap({
@@ -43,7 +40,6 @@
             theme: 'dark',
             readonly: false
         });
-
         window.addEventListener('resize', () => mindMap.resize());
     </script>
 </body>
