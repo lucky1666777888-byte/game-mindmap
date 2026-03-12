@@ -1,48 +1,52 @@
 <!DOCTYPE html>
-<html lang="">
+<html>
 <head>
-  <meta charset="utf-8">
-  <link rel="icon" href="dist/logo.ico">
-  <title>AI 游戏测试脑图 - 编辑器版</title>
-  <script>
-    // 核心开关：开启接管模式
-    window.takeOverApp = true;
-    window.externalPublicPath = './dist/';
-  </script>
-  <link href="dist/css/chunk-vendors.css" rel="stylesheet">
-  <link href="dist/css/app.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>AI 游戏测试脑图 - 专业版</title>
+  <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
+    #mindMapContainer { width: 100vw; height: 100vh; }
+  </style>
 </head>
 <body>
-  <div id="app"></div>
-  <script>
-    // 1. 拆快递逻辑：解析 Dify 发来的数据
-    const getAiData = () => {
+  <div id="mindMapContainer"></div>
+
+  <script type="module">
+    // 从云端调取核心引擎和右键菜单插件
+    import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
+    import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
+
+    // 1. 开启右键菜单功能（满足你编辑的需求）
+    MindMap.usePlugin(Menu);
+
+    // 2. 解析 Dify 传来的加密包裹
+    function getAiData() {
       const hash = window.location.hash;
       if (hash && hash.includes('data=')) {
         try {
           const b64 = hash.split('data=')[1];
-          const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
+          // 针对中文的特殊解密
+          return JSON.parse(decodeURIComponent(atob(b64).split('').map(c => 
             '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-          ).join(''));
-          return JSON.parse(jsonStr);
-        } catch (e) { console.error("解析失败", e); }
+          ).join('')));
+        } catch (e) {
+          console.error("解密失败:", e);
+        }
       }
-      return { data: { text: "请从 Dify 发送数据" }, children: [] };
+      return { data: { text: "等待 Dify 数据..." } };
     }
 
-    // 2. 注入官方 API：这是文档里提到的接管方法
-    window.onload = () => {
-      const mindMapData = getAiData();
-      window.takeOverAppMethods = {
-        getMindMapData: () => mindMapData, // 喂入 AI 脑图数据
-        saveMindMapData: (data) => { console.log('已手动修改数据:', data) },
-        getLanguage: () => 'zh-cn',
-        getLocalConfig: () => null,
-        getMindMapConfig: () => ({ theme: 'dark' }) // 默认暗色皮肤
-      };
-    };
+    // 3. 启动引擎
+    const mindMap = new MindMap({
+      el: document.getElementById('mindMapContainer'),
+      data: getAiData(),
+      theme: 'dark', // 暗色主题
+      readonly: false, // 允许编辑
+      enableDirectEdit: true // 双击改字
+    });
+
+    window.addEventListener('resize', () => mindMap.resize());
   </script>
-  <script src="dist/js/chunk-vendors.js"></script>
-  <script src="dist/js/app.js"></script>
 </body>
 </html>
