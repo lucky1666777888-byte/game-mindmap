@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI 游戏测试脑图专业版</title>
+    <title>AI 游戏测试脑图</title>
     <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -11,36 +11,38 @@
 </head>
 <body>
     <div id="mindmapContainer"></div>
+
     <script type="module">
+        // 从 CDN 导入核心逻辑（和你下载的文件一致，但更适合云端部署）
         import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
         import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
 
         MindMap.usePlugin(Menu); // 激活右键菜单
 
-        function getSafeData() {
+        // 解析 URL 中的 Base64 数据
+        function getInitData() {
             const hash = window.location.hash;
             if (hash && hash.includes('data=')) {
                 try {
                     const b64 = hash.split('data=')[1];
-                    // 处理中文 Base64 的终极方案
+                    // 处理中文 Base64 的兼容解码
                     const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
                         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                     ).join(''));
                     return JSON.parse(jsonStr);
                 } catch (e) {
                     console.error("解析失败", e);
-                    return { data: { text: "数据解码失败，请重新生成" } };
                 }
             }
-            return { data: { text: "请从 Dify 点击链接访问" } };
+            return { data: { text: "等待 Dify 数据接入..." } };
         }
 
+        // 启动脑图引擎
         const mindMap = new MindMap({
             el: document.getElementById('mindmapContainer'),
-            data: getSafeData(),
+            data: getInitData(),
             theme: 'dark',
-            readonly: false, // 允许手动编辑
-            enableDirectEdit: true // 允许双击文字编辑
+            readonly: false
         });
 
         window.addEventListener('resize', () => mindMap.resize());
