@@ -2,9 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>AI 游戏测试脑图预览</title>
+  <title>AI 游戏测试脑图 - 专业版</title>
   <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
   <style>
+    body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
     #mindmapContainer { width: 100vw; height: 100vh; }
   </style>
 </head>
@@ -13,26 +14,43 @@
 
   <script type="module">
     import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
+    import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
 
-    // 1. 从 URL 获取 Dify 传过来的数据
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawData = urlParams.get('data');
-    
-    let mindMapData = { data: { text: "待加载数据" }, children: [] };
-    if (rawData) {
+    // 1. 注册右键菜单插件
+    MindMap.usePlugin(Menu);
+
+    // 2. 解码数据逻辑 (支持 Base64 以处理超长文本和中文字符)
+    function getMindMapData() {
+      const hash = window.location.hash;
+      const defaultData = { data: { text: "待加载数据" }, children: [] };
+      
+      if (hash && hash.includes('data=')) {
         try {
-            // 解码并解析 JSON
-            mindMapData = JSON.parse(decodeURIComponent(rawData));
+          const b64Data = hash.split('data=')[1];
+          // 解码 Base64 (兼容中文字符)
+          const jsonStr = decodeURIComponent(atob(b64Data).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          return JSON.parse(jsonStr);
         } catch (e) {
-            console.error("数据解析失败", e);
+            console.error("数据解析失败:", e);
+            return { data: { text: "解析错误，请检查链接" }, children: [] };
         }
+      }
+      return defaultData;
     }
 
-    // 2. 初始化脑图
+    // 3. 初始化脑图
     const mindMap = new MindMap({
       el: document.getElementById('mindmapContainer'),
-      data: mindMapData,
-      theme: 'dark' // 暗黑模式，更有游戏科技感
+      data: getMindMapData(),
+      theme: 'dark', // 设置高大上的暗色主题
+      readonly: false // 开启编辑模式
+    });
+
+    // 4. 窗口大小自适应
+    window.addEventListener('resize', () => {
+      mindMap.resize();
     });
   </script>
 </body>
