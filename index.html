@@ -2,10 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>AI 游戏测试脑图 - 专业版</title>
+  <title>AI 游戏测试脑图 - 修复版</title>
   <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
   <style>
-    body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
+    body { margin: 0; padding: 0; background-color: #1a1a1a; }
     #mindmapContainer { width: 100vw; height: 100vh; }
   </style>
 </head>
@@ -16,46 +16,34 @@
     import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
     import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
 
-    // 1. 注册右键菜单插件
+    // 1. 开启右键菜单
     MindMap.usePlugin(Menu);
 
-    // 2. 核心解码逻辑：支持处理 Dify 发来的 Base64 数据
     function getMindMapData() {
-      // 优先从 #data= 获取，如果没找到则从 ?data= 获取（双重兼容）
+      // 核心：学会从链接末尾提取 #data= 后的 Base64 密文
       const hash = window.location.hash;
-      const search = new URLSearchParams(window.location.search);
-      let b64Data = '';
-
       if (hash && hash.includes('data=')) {
-        b64Data = hash.split('data=')[1];
-      } else {
-        b64Data = search.get('data') || '';
-      }
-
-      if (b64Data) {
         try {
-          // 解码 Base64 (兼容中文字符的特殊处理)
-          const jsonStr = decodeURIComponent(atob(b64Data).split('').map(function(c) {
+          const b64Data = hash.split('data=')[1];
+          // 将密文翻译回中文和 JSON 格式
+          const decodedData = decodeURIComponent(atob(b64Data).split('').map(function(c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           }).join(''));
-          return JSON.parse(jsonStr);
+          return JSON.parse(decodedData);
         } catch (e) {
-          console.error("数据解析失败:", e);
-          return { data: { text: "数据解码错误" }, children: [] };
+          return { data: { text: "数据解码失败" }, children: [] };
         }
       }
-      return { data: { text: "等待 Dify 传入数据..." }, children: [] };
+      return { data: { text: "等待数据传入..." }, children: [] };
     }
 
-    // 3. 初始化脑图
+    // 2. 初始化显示
     const mindMap = new MindMap({
       el: document.getElementById('mindmapContainer'),
       data: getMindMapData(),
-      theme: 'dark', // 科技感暗色
+      theme: 'dark',
       readonly: false
     });
-
-    window.addEventListener('resize', () => mindMap.resize());
   </script>
 </body>
 </html>
