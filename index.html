@@ -1,49 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>AI 游戏测试脑图 - 修复版</title>
-  <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
-  <style>
-    body { margin: 0; padding: 0; background-color: #1a1a1a; }
-    #mindmapContainer { width: 100vw; height: 100vh; }
-  </style>
+    <meta charset="UTF-8">
+    <title>AI 游戏测试脑图专业版</title>
+    <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
+        #mindmapContainer { width: 100vw; height: 100vh; }
+    </style>
 </head>
 <body>
-  <div id="mindmapContainer"></div>
+    <div id="mindmapContainer"></div>
+    <script type="module">
+        import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
+        import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
 
-  <script type="module">
-    import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
-    import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
+        MindMap.usePlugin(Menu); // 激活右键菜单
 
-    // 1. 开启右键菜单
-    MindMap.usePlugin(Menu);
-
-    function getMindMapData() {
-      // 核心：学会从链接末尾提取 #data= 后的 Base64 密文
-      const hash = window.location.hash;
-      if (hash && hash.includes('data=')) {
-        try {
-          const b64Data = hash.split('data=')[1];
-          // 将密文翻译回中文和 JSON 格式
-          const decodedData = decodeURIComponent(atob(b64Data).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join(''));
-          return JSON.parse(decodedData);
-        } catch (e) {
-          return { data: { text: "数据解码失败" }, children: [] };
+        function getSafeData() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('data=')) {
+                try {
+                    const b64 = hash.split('data=')[1];
+                    // 处理中文 Base64 的终极方案
+                    const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
+                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                    ).join(''));
+                    return JSON.parse(jsonStr);
+                } catch (e) {
+                    console.error("解析失败", e);
+                    return { data: { text: "数据解码失败，请重新生成" } };
+                }
+            }
+            return { data: { text: "请从 Dify 点击链接访问" } };
         }
-      }
-      return { data: { text: "等待数据传入..." }, children: [] };
-    }
 
-    // 2. 初始化显示
-    const mindMap = new MindMap({
-      el: document.getElementById('mindmapContainer'),
-      data: getMindMapData(),
-      theme: 'dark',
-      readonly: false
-    });
-  </script>
+        const mindMap = new MindMap({
+            el: document.getElementById('mindmapContainer'),
+            data: getSafeData(),
+            theme: 'dark',
+            readonly: false, // 允许手动编辑
+            enableDirectEdit: true // 允许双击文字编辑
+        });
+
+        window.addEventListener('resize', () => mindMap.resize());
+    </script>
 </body>
 </html>
