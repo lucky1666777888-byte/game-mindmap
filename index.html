@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI 游戏测试脑图</title>
+    <title>AI 游戏测试脑图专业版</title>
     <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -13,38 +13,42 @@
     <div id="mindmapContainer"></div>
 
     <script type="module">
-        // 从 CDN 导入核心逻辑（和你下载的文件一致，但更适合云端部署）
+        // 1. 引入引擎及插件（和你下载的源码功能完全对应）
         import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
         import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
+        import Drag from 'https://unpkg.com/simple-mind-map/dist/drag.esm.js';
 
-        MindMap.usePlugin(Menu); // 激活右键菜单
+        // 2. 激活插件：右键菜单和拖拽编辑
+        MindMap.usePlugin(Menu).usePlugin(Drag);
 
-        // 解析 URL 中的 Base64 数据
+        // 3. 核心：Base64 数据解码器
         function getInitData() {
             const hash = window.location.hash;
             if (hash && hash.includes('data=')) {
                 try {
                     const b64 = hash.split('data=')[1];
-                    // 处理中文 Base64 的兼容解码
+                    // 处理中文乱码的终极解码方案
                     const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
                         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                     ).join(''));
                     return JSON.parse(jsonStr);
                 } catch (e) {
-                    console.error("解析失败", e);
+                    console.error("解析错误", e);
                 }
             }
-            return { data: { text: "等待 Dify 数据接入..." } };
+            return { data: { text: "请等待 Dify 传输数据..." } };
         }
 
-        // 启动脑图引擎
+        // 4. 正式初始化引擎
         const mindMap = new MindMap({
             el: document.getElementById('mindmapContainer'),
             data: getInitData(),
-            theme: 'dark',
-            readonly: false
+            theme: 'dark', // 设置高大上的暗黑主题
+            readonly: false, // 允许编辑
+            enableDirectEdit: true // 双击可编辑
         });
 
+        // 自动适配浏览器窗口
         window.addEventListener('resize', () => mindMap.resize());
     </script>
 </body>
