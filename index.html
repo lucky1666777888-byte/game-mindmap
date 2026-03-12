@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI 游戏测试脑图</title>
+    <title>AI 游戏测试脑图专业版</title>
     <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -14,32 +14,40 @@
     <script type="module">
         import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
         import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
-        
-        MindMap.usePlugin(Menu); // 激活右键菜单
 
-        function getSafeData() {
+        // 1. 注册右键菜单插件
+        MindMap.usePlugin(Menu);
+
+        // 2. 核心解码逻辑
+        function getInitData() {
             const hash = window.location.hash;
             if (hash && hash.includes('data=')) {
                 try {
                     const b64 = hash.split('data=')[1];
-                    // 处理中文 Base64 的终极解码
+                    // 处理中文 Base64 的终极方案
                     const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
                         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                     ).join(''));
-                    return JSON.parse(jsonStr);
+                    const parsed = JSON.parse(jsonStr);
+                    // 容错检查：如果 children 漏了，补一个空数组
+                    if (!parsed.children) parsed.children = [];
+                    return parsed;
                 } catch (e) {
-                    return { data: { text: "解码失败，请回 Dify 重新生成" } };
+                    console.error("解码失败:", e);
+                    return { data: { text: "数据错误，请重新生成" } };
                 }
             }
-            return { data: { text: "等待数据..." } };
+            return { data: { text: "等待 Dify 传输数据" } };
         }
 
+        // 3. 启动引擎
         const mindMap = new MindMap({
             el: document.getElementById('mindmapContainer'),
-            data: getSafeData(),
-            theme: 'dark',
+            data: getInitData(),
+            theme: 'dark', // 游戏行业暗黑主题
             readonly: false
         });
+
         window.addEventListener('resize', () => mindMap.resize());
     </script>
 </body>
