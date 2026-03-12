@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI 游戏测试脑图预览</title>
+  <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
+  <style>
+    #mindmapContainer { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="mindmapContainer"></div>
+
+  <script type="module">
+    import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
+
+    // 1. 从 URL 获取 Dify 传过来的数据
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawData = urlParams.get('data');
+    
+    let mindMapData = { data: { text: "待加载数据" }, children: [] };
+    if (rawData) {
+        try {
+            // 解码并解析 JSON
+            mindMapData = JSON.parse(decodeURIComponent(rawData));
+        } catch (e) {
+            console.error("数据解析失败", e);
+        }
+    }
+
+    // 2. 初始化脑图
+    const mindMap = new MindMap({
+      el: document.getElementById('mindmapContainer'),
+      data: mindMapData,
+      theme: 'dark' // 暗黑模式，更有游戏科技感
+    });
+  </script>
+</body>
+</html>
