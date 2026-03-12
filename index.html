@@ -1,50 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>AI 游戏测试专业脑图</title>
-  <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
-  <style>
-    body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
-    #mindMapContainer { width: 100vw; height: 100vh; }
-  </style>
+  <meta charset="utf-8">
+  <title>AI 游戏测试编辑器</title>
+  <script>
+    // 1. 开启官方预留的“接管模式”
+    window.takeOverApp = true;
+  </script>
+  <link href="dist/css/chunk-vendors.css" rel="stylesheet">
+  <link href="dist/css/app.css" rel="stylesheet">
 </head>
 <body>
-  <div id="mindMapContainer"></div>
-  <script type="module">
-    import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
-    import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
-
-    // 1. 注册右键菜单功能
-    MindMap.usePlugin(Menu);
-
-    // 2. 解密 Dify 发来的 Base64 数据
-    function getDifyData() {
-      const hash = window.location.hash;
-      if (hash && hash.includes('data=')) {
-        try {
-          const b64 = hash.split('data=')[1];
-          const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
-            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-          ).join(''));
-          return JSON.parse(jsonStr);
-        } catch (e) {
-          return { data: { text: "数据解码失败，请重新生成" } };
+  <div id="app"></div>
+  <script>
+    // 2. 解析 Dify 发来的加密数据
+    const getAiData = () => {
+      return new Promise((resolve) => {
+        const hash = window.location.hash;
+        if (hash.includes('data=')) {
+          try {
+            const b64 = hash.split('data=')[1];
+            // 解密并还原中文
+            const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
+              '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+            ).join(''));
+            resolve(JSON.parse(jsonStr));
+            return;
+          } catch (e) { console.error("解析失败", e); }
         }
-      }
-      return { data: { text: "请从 Dify 点击链接访问" } };
-    }
+        resolve({ data: { text: "待接入数据" }, children: [] });
+      });
+    };
 
-    // 3. 启动引擎
-    const mindMap = new MindMap({
-      el: document.getElementById('mindMapContainer'),
-      data: getDifyData(),
-      theme: 'dark',
-      readonly: false,
-      enableDirectEdit: true // 双击节点即可编辑
-    });
-
-    window.addEventListener('resize', () => mindMap.resize());
+    // 3. 注入编辑器的 API（官方提供的接管方法）
+    window.onload = async () => {
+      const mindMapData = await getAiData();
+      window.takeOverAppMethods = {
+        getMindMapData: () => mindMapData,
+        saveMindMapData: (data) => console.log('已保存:', data),
+        getLanguage: () => 'zh-cn'
+      };
+    };
   </script>
+  <script src="dist/js/chunk-vendors.js"></script>
+  <script src="dist/js/app.js"></script>
 </body>
 </html>
