@@ -19,39 +19,43 @@
     // 1. 注册右键菜单插件
     MindMap.usePlugin(Menu);
 
-    // 2. 解码数据逻辑 (支持 Base64 以处理超长文本和中文字符)
+    // 2. 核心解码逻辑：支持处理 Dify 发来的 Base64 数据
     function getMindMapData() {
+      // 优先从 #data= 获取，如果没找到则从 ?data= 获取（双重兼容）
       const hash = window.location.hash;
-      const defaultData = { data: { text: "待加载数据" }, children: [] };
-      
+      const search = new URLSearchParams(window.location.search);
+      let b64Data = '';
+
       if (hash && hash.includes('data=')) {
+        b64Data = hash.split('data=')[1];
+      } else {
+        b64Data = search.get('data') || '';
+      }
+
+      if (b64Data) {
         try {
-          const b64Data = hash.split('data=')[1];
-          // 解码 Base64 (兼容中文字符)
+          // 解码 Base64 (兼容中文字符的特殊处理)
           const jsonStr = decodeURIComponent(atob(b64Data).split('').map(function(c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           }).join(''));
           return JSON.parse(jsonStr);
         } catch (e) {
-            console.error("数据解析失败:", e);
-            return { data: { text: "解析错误，请检查链接" }, children: [] };
+          console.error("数据解析失败:", e);
+          return { data: { text: "数据解码错误" }, children: [] };
         }
       }
-      return defaultData;
+      return { data: { text: "等待 Dify 传入数据..." }, children: [] };
     }
 
     // 3. 初始化脑图
     const mindMap = new MindMap({
       el: document.getElementById('mindmapContainer'),
       data: getMindMapData(),
-      theme: 'dark', // 设置高大上的暗色主题
-      readonly: false // 开启编辑模式
+      theme: 'dark', // 科技感暗色
+      readonly: false
     });
 
-    // 4. 窗口大小自适应
-    window.addEventListener('resize', () => {
-      mindMap.resize();
-    });
+    window.addEventListener('resize', () => mindMap.resize());
   </script>
 </body>
 </html>
