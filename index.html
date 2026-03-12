@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>AI 游戏测试脑图</title>
+  <title>AI 游戏测试脑图 - 预览版</title>
   <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
   <style>
     body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -11,32 +11,42 @@
 </head>
 <body>
   <div id="mindMapContainer"></div>
+
   <script type="module">
     import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
     import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
-    MindMap.usePlugin(Menu); // 开启右键菜单
 
-    function getDifyData() {
+    // 1. 注册右键菜单插件，这样你可以编辑 AI 生成的节点
+    MindMap.usePlugin(Menu);
+
+    // 2. 核心：解析从 Dify 发来的加密长链接
+    function getSafeData() {
       const hash = window.location.hash;
-      if (hash.includes('data=')) {
+      if (hash && hash.includes('data=')) {
         try {
           const b64 = hash.split('data=')[1];
-          // 这里的解码逻辑必须和 Python 端严格对应，才能解决黑屏
-          return JSON.parse(decodeURIComponent(atob(b64).split('').map(c => 
+          // 针对中文 UTF-8 编码的特殊解密方案
+          const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
             '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-          ).join('')));
-        } catch (e) { console.error("解码失败", e); }
+          ).join(''));
+          return JSON.parse(jsonStr);
+        } catch (e) {
+          console.error("解密失败:", e);
+          return { data: { text: "数据异常，请重新生成" } };
+        }
       }
-      return { data: { text: "数据未加载，请从 Dify 点击链接" } };
+      return { data: { text: "等待 Dify 发送数据..." } };
     }
 
+    // 3. 启动引擎
     const mindMap = new MindMap({
       el: document.getElementById('mindMapContainer'),
-      data: getDifyData(),
-      theme: 'dark',
-      readonly: false,
-      enableDirectEdit: true
+      data: getSafeData(),
+      theme: 'dark', // 设置高大上的暗黑模式
+      readonly: false, // 允许手动编辑
+      enableDirectEdit: true // 双击节点即可改字
     });
+
     window.addEventListener('resize', () => mindMap.resize());
   </script>
 </body>
