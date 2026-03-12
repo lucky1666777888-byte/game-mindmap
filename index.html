@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI 游戏测试脑图</title>
+    <title>AI 游戏测试脑图 - 专业版</title>
     <link rel="stylesheet" href="https://unpkg.com/simple-mind-map/dist/style.css">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -13,36 +13,36 @@
     <div id="mindmapContainer"></div>
 
     <script type="module">
-        // 从 CDN 导入核心逻辑（和你下载的文件一致，但更适合云端部署）
         import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
         import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
 
-        MindMap.usePlugin(Menu); // 激活右键菜单
+        // 注册右键菜单插件，解决你之前不能编辑的问题
+        MindMap.usePlugin(Menu);
 
-        // 解析 URL 中的 Base64 数据
-        function getInitData() {
+        function getMyData() {
             const hash = window.location.hash;
             if (hash && hash.includes('data=')) {
                 try {
                     const b64 = hash.split('data=')[1];
-                    // 处理中文 Base64 的兼容解码
+                    // 处理中文编码的核心解码逻辑
                     const jsonStr = decodeURIComponent(atob(b64).split('').map(c => 
                         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                     ).join(''));
                     return JSON.parse(jsonStr);
                 } catch (e) {
                     console.error("解析失败", e);
+                    return { data: { text: "数据异常，请在 Dify 重新生成" } };
                 }
             }
-            return { data: { text: "等待 Dify 数据接入..." } };
+            return { data: { text: "等待 Dify 接入数据..." } };
         }
 
-        // 启动脑图引擎
         const mindMap = new MindMap({
             el: document.getElementById('mindmapContainer'),
-            data: getInitData(),
-            theme: 'dark',
-            readonly: false
+            data: getMyData(),
+            theme: 'dark', // 科技感暗色
+            readonly: false, // 允许手动编辑
+            enableDirectEdit: true // 双击节点即可修改
         });
 
         window.addEventListener('resize', () => mindMap.resize());
