@@ -11,41 +11,34 @@
 </head>
 <body>
   <div id="mindMapContainer"></div>
-
   <script type="module">
-    // 从云端调取核心引擎和右键菜单插件
     import MindMap from 'https://unpkg.com/simple-mind-map/dist/index.esm.js';
     import Menu from 'https://unpkg.com/simple-mind-map/dist/menu.esm.js';
-
-    // 1. 开启右键菜单功能（满足你编辑的需求）
+    
+    // 启用右键菜单，支持编辑、删除、新增
     MindMap.usePlugin(Menu);
 
-    // 2. 解析 Dify 传来的加密包裹
-    function getAiData() {
+    function getDifyData() {
       const hash = window.location.hash;
       if (hash && hash.includes('data=')) {
         try {
           const b64 = hash.split('data=')[1];
-          // 针对中文的特殊解密
+          // 这里的解码逻辑必须和 Python 端严格对应
           return JSON.parse(decodeURIComponent(atob(b64).split('').map(c => 
             '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
           ).join('')));
-        } catch (e) {
-          console.error("解密失败:", e);
-        }
+        } catch (e) { console.error("解析包裹失败"); }
       }
-      return { data: { text: "等待 Dify 数据..." } };
+      return { data: { text: "等待 Dify 接入数据..." } };
     }
 
-    // 3. 启动引擎
     const mindMap = new MindMap({
       el: document.getElementById('mindMapContainer'),
-      data: getAiData(),
-      theme: 'dark', // 暗色主题
-      readonly: false, // 允许编辑
-      enableDirectEdit: true // 双击改字
+      data: getDifyData(),
+      theme: 'dark', // 默认黑色背景，比较高级
+      readonly: false, // 允许你编辑
+      enableDirectEdit: true // 双击节点改字
     });
-
     window.addEventListener('resize', () => mindMap.resize());
   </script>
 </body>
